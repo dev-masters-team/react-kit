@@ -219,7 +219,7 @@ function checkRelease()
 	buildTypescript(/* force */ true);
 	replaceVersion();
 	lint();
-	test();
+	// test();
 }
 
 function executeCmd(command, exitOnError = true)

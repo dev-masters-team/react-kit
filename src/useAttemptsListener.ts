@@ -1,8 +1,18 @@
-import { Action, AnyAction, AsyncThunk, Dispatch, ListenerMiddleware, MiddlewareArray, ThunkDispatch, ThunkMiddleware, Unsubscribe, UnsubscribeListener, addListener } from '@reduxjs/toolkit'
+import {
+  AnyAction,
+  AsyncThunk,
+  Dispatch,
+  ListenerMiddleware,
+  MiddlewareArray,
+  ThunkDispatch,
+  ThunkMiddleware,
+  Unsubscribe,
+  addListener,
+} from '@reduxjs/toolkit'
 import { useEffect, useState } from 'react'
 // import { store } from '../../store'
 import { ToolkitStore } from '@reduxjs/toolkit/dist/configureStore'
-//AsyncThunkConfig has been copied from /node_modules/@reduxjs/toolkit/dist/createAsyncThunk.d.ts
+// AsyncThunkConfig has been copied from /node_modules/@reduxjs/toolkit/dist/createAsyncThunk.d.ts
 declare type AsyncThunkConfig = {
   state?: unknown
   dispatch?: Dispatch
@@ -19,7 +29,16 @@ declare type AsyncThunkConfig = {
 // type AttemptActionRejected<Returned, ThunkArg, ThunkApiConfig extends AsyncThunkConfig> = ReturnType<AsyncThunk<Returned, ThunkArg, ThunkApiConfig>['rejected']>;
 
 interface Props<Returned, ThunkArg, ThunkApiConfig extends AsyncThunkConfig> {
-  store: ToolkitStore<any, AnyAction, MiddlewareArray<[ListenerMiddleware<unknown, ThunkDispatch<unknown, unknown, AnyAction>, unknown>, ThunkMiddleware<any, AnyAction>]>>
+  store: ToolkitStore<
+    any,
+    AnyAction,
+    MiddlewareArray<
+      [
+        ListenerMiddleware<unknown, ThunkDispatch<unknown, unknown, AnyAction>, unknown>,
+        ThunkMiddleware<any, AnyAction>,
+      ]
+    >
+  >
   attempt: AsyncThunk<Returned, ThunkArg, ThunkApiConfig>
   onPending?: (action: any) => void
   // onFulfilled?: (action: PayloadAction<ReturnType<T>>, listenerApi: ListenerEffectAPI<unknown, ThunkDispatch<unknown, unknown, AnyAction>, unknown>) => void

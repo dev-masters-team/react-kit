@@ -1,5 +1,4 @@
 export function useStrongPassword() {
-
   const pwdRules = [
     {
       message: '8 characters',
@@ -29,6 +28,7 @@ export function useStrongPassword() {
 
   function verifyProvidedPassword(value: any) {
     const failedRequirements: string[] = []
+
     if (value) {
       pwdRules.forEach((rule) => {
         if (!rule.regex.test(value)) {

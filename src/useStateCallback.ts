@@ -22,6 +22,7 @@ export function useStateCallback<T>(
   useEffect(() => {
     if (isFirstCallbackCall.current) {
       isFirstCallbackCall.current = false
+
       return
     }
     callbackRef.current?.(state)
@@ -29,5 +30,3 @@ export function useStateCallback<T>(
 
   return [state, setState]
 }
-
-

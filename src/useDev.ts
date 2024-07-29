@@ -20,6 +20,7 @@ function useDevRenderTimeMeasurement(componentName: string) {
 
   useEffect(() => {
     const end = performance.now()
+
     console.log(
       `${componentName} Rendering took:`,
       end - start,
@@ -49,6 +50,6 @@ function useFakeAutocomplete(_options: string[]) {
   return { filterOption, options }
 }
 
-function delay(ms: number){
-  return new Promise(resolve => setTimeout(resolve, ms)) 
+function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }

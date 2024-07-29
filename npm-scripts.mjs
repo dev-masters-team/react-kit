@@ -10,253 +10,261 @@ const MAYOR_VERSION = PKG.version.split('.')[0];
 const MINOR_VERSION = PKG.version.split('.')[1];
 const BUG_FIX_VERSION = PKG.version.split('.')[2];
 
-
 const task = process.argv.slice(2).join(' ');
 
 run();
 
 async function run()
 {
-  switch (task)
-  {
-    // As per NPM documentation (https://docs.npmjs.com/cli/v9/using-npm/scripts)
-    // `prepare` script:
-    //
-    // - Runs BEFORE the package is packed, i.e. during `npm publish` and `npm pack`.
-    // - Runs on local `npm install` without any arguments.
-    // - NOTE: If a package being installed through git contains a `prepare` script,
-    //   its dependencies and devDependencies will be installed, and the `prepare`
-    //   script will be run, before the package is packaged and installed.
-    //
-    // So here we compile TypeScript to JavaScript.
-    case 'prepare':
-    {
-      buildTypescript(/* force */ false);
+	switch (task)
+	{
+		// As per NPM documentation (https://docs.npmjs.com/cli/v9/using-npm/scripts)
+		// `prepare` script:
+		//
+		// - Runs BEFORE the package is packed, i.e. during `npm publish` and `npm pack`.
+		// - Runs on local `npm install` without any arguments.
+		// - NOTE: If a package being installed through git contains a `prepare` script,
+		//   its dependencies and devDependencies will be installed, and the `prepare`
+		//   script will be run, before the package is packaged and installed.
+		//
+		// So here we compile TypeScript to JavaScript.
+		case 'prepare':
+		{
+			buildTypescript(/* force */ false);
 
-      break;
-    }
+			break;
+		}
 
-    case 'typescript:build':
-    {
-      installDeps();
-      buildTypescript(/* force */ true);
-      replaceVersion();
+		case 'typescript:build':
+		{
+			installDeps();
+			buildTypescript(/* force */ true);
+			replaceVersion();
 
-      break;
-    }
+			break;
+		}
 
-    case 'typescript:watch':
-    {
-      deleteLib();
-      executeCmd('tsc --watch');
+		case 'typescript:watch':
+		{
+			deleteLib();
+			executeCmd('tsc --watch');
 
-      break;
-    }
+			break;
+		}
 
-    case 'lint':
-    {
-      lint();
+		case 'lint':
+		{
+			lint();
 
-      break;
-    }
+			break;
+		}
 
-    case 'test':
-    {
-      buildTypescript(/* force */ false);
-      replaceVersion();
-      test();
+		case 'test':
+		{
+			buildTypescript(/* force */ false);
+			replaceVersion();
+			test();
 
-      break;
-    }
+			break;
+		}
 
-    case 'coverage':
-    {
-      buildTypescript(/* force */ false);
-      replaceVersion();
-      executeCmd('jest --coverage');
-      executeCmd('open-cli coverage/lcov-report/index.html');
+		case 'coverage':
+		{
+			buildTypescript(/* force */ false);
+			replaceVersion();
+			executeCmd('jest --coverage');
+			executeCmd('open-cli coverage/lcov-report/index.html');
 
-      break;
-    }
+			break;
+		}
 
-    case 'install-deps':
-    {
-      installDeps();
+		case 'install-deps':
+		{
+			installDeps();
 
-      break;
-    }
+			break;
+		}
 
-    case 'release:check':
-    {
-      checkRelease();
+		case 'release:check':
+		{
+			checkRelease();
 
-      break;
-    }
+			break;
+		}
 
-    case 'release:dev': {
-      const NEW_DEV_VERSION = `${MAYOR_VERSION}.${MINOR_VERSION}.${parseInt(BUG_FIX_VERSION) + 1}`
-      executeCmd(`npm version ${NEW_DEV_VERSION} --no-git-tag-version`);
-      executeCmd(`git commit -am '${NEW_DEV_VERSION}'`);
-      executeCmd(`git tag -a ${NEW_DEV_VERSION} -m '${NEW_DEV_VERSION}'`);
-      executeCmd(`git push origin '${NEW_DEV_VERSION}'`);
-    }
+		case 'release:dev': {
+			const NEW_DEV_VERSION = `${MAYOR_VERSION}.${MINOR_VERSION}.${parseInt(BUG_FIX_VERSION) + 1}`
+			executeCmd(`npm version ${NEW_DEV_VERSION} --no-git-tag-version`);
+			executeCmd(`git commit -am '${NEW_DEV_VERSION}'`);
+			executeCmd(`git tag -a ${NEW_DEV_VERSION} -m '${NEW_DEV_VERSION}'`);
+			executeCmd(`git push origin '${NEW_DEV_VERSION}'`);
+		}
 
-    case 'release':
-    {
-      // checkRelease();
-      // executeCmd(`git commit -am '${PKG.version}'`);
-      // executeCmd(`git tag -a ${PKG.version} -m '${PKG.version}'`);
-      // executeCmd(`git push origin '${PKG.version}'`);
-      // executeCmd('npm publish');
+		case 'release':
+		{
+			checkRelease();
+			executeCmd(`git commit -am '${PKG.version}'`);
+			executeCmd(`git tag -a ${PKG.version} -m '${PKG.version}'`);
+			executeCmd(`git push origin '${PKG.version}'`);
+			// executeCmd('npm publish');
 
-      break;
-    }
+			break;
+		}
 
-    default:
-    {
-      logError('unknown task');
+		default:
+		{
+			logError('unknown task');
 
-      exitWithError();
-    }
-  }
+			exitWithError();
+		}
+	}
 }
 
 function replaceVersion()
 {
-  logInfo('replaceVersion()');
+	logInfo('replaceVersion()');
 
-  const files = fs.readdirSync('lib',
-    {
-      withFileTypes : true,
-      recursive     : true
-    });
+	const files = fs.readdirSync('lib',
+		{
+			withFileTypes : true,
+			recursive     : true
+		});
 
-  for (const file of files)
-  {
-    if (!file.isFile())
-    {
-      continue;
-    }
+	for (const file of files)
+	{
+		if (!file.isFile())
+		{
+			continue;
+		}
 
-    const filePath = path.join('lib', file.name);
-    const text = fs.readFileSync(filePath, { encoding: 'utf8' });
-    const result = text.replace(/__MEDIASOUP_CLIENT_VERSION__/g, PKG.version);
+		const filePath = path.join('lib', file.name);
+		const text = fs.readFileSync(filePath, { encoding: 'utf8' });
+		const result = text.replace(/__MEDIASOUP_CLIENT_VERSION__/g, PKG.version);
 
-    fs.writeFileSync(filePath, result, { encoding: 'utf8' });
-  }
+		fs.writeFileSync(filePath, result, { encoding: 'utf8' });
+	}
 }
 
 function deleteLib()
 {
-  if (!fs.existsSync('lib'))
-  {
-    return;
-  }
+	if (!fs.existsSync('lib'))
+	{
+		return;
+	}
 
-  logInfo('deleteLib()');
+	logInfo('deleteLib()');
 
-  if (!IS_WINDOWS)
-  {
-    executeCmd('rm -rf lib');
-  }
-  else
-  {
-    // NOTE: This command fails in Windows if the dir doesn't exist.
-    executeCmd('rmdir /s /q "lib"', /* exitOnError */ false);
-  }
+	if (!IS_WINDOWS)
+	{
+		executeCmd('rm -rf lib');
+	}
+	else
+	{
+		// NOTE: This command fails in Windows if the dir doesn't exist.
+		executeCmd('rmdir /s /q "lib"', /* exitOnError */ false);
+	}
 }
 
 function buildTypescript(force = false)
 {
-  if (!force && fs.existsSync('lib'))
-  {
-    return;
-  }
+	if (!force && fs.existsSync('lib'))
+	{
+		return;
+	}
 
-  logInfo('buildTypescript()');
+	logInfo('buildTypescript()');
 
-  deleteLib();
-  executeCmd('tsc');
+	deleteLib();
+	executeCmd('tsc');
 }
 
 function lint()
 {
-  logInfo('lint()');
+	logInfo('lint()');
 
-  executeCmd('eslint -c .eslintrc.js --max-warnings 0 src .eslintrc.js npm-scripts.mjs');
+	try 
+	{
+		executeCmd('prettier  --loglevel warn --write \"./**/*.{ts,js,tsx,css,scss,md,json}\"');
+		executeCmd('eslint ./src --ext .tsx,.ts,.js --quiet --fix --ignore-path ./.gitignore');
+	}
+	catch (error) 
+	{
+		logError(`Linting failed after attempting to fix issues: ${ error.message}`);
+		process.exit(1);
+	}
 }
 
 function test()
 {
-  logInfo('test()');
+	logInfo('test()');
 
-  executeCmd('jest');
+	executeCmd('jest');
 }
 
 function installDeps()
 {
-  logInfo('installDeps()');
+	logInfo('installDeps()');
 
-  // Install/update deps.
-  executeCmd('npm ci --ignore-scripts');
-  // Update package-lock.json.
-  executeCmd('npm install --package-lock-only --ignore-scripts');
+	// Install/update deps.
+	executeCmd('npm ci --ignore-scripts');
+	// Update package-lock.json.
+	executeCmd('npm install --package-lock-only --ignore-scripts');
 }
 
 function checkRelease()
 {
-  logInfo('checkRelease()');
+	logInfo('checkRelease()');
 
-  installDeps();
-  buildTypescript(/* force */ true);
-  replaceVersion();
-  lint();
-  test();
+	installDeps();
+	buildTypescript(/* force */ true);
+	replaceVersion();
+	lint();
+	test();
 }
 
 function executeCmd(command, exitOnError = true)
 {
-  logInfo(`executeCmd(): ${command}`);
+	logInfo(`executeCmd(): ${command}`);
 
-  try
-  {
-    execSync(command, { stdio: [ 'ignore', process.stdout, process.stderr ] });
-  }
-  catch (error)
-  {
-    if (exitOnError)
-    {
-      logError(`executeCmd() failed, exiting: ${error}`);
+	try
+	{
+		execSync(command, { stdio: [ 'ignore', process.stdout, process.stderr ] });
+	}
+	catch (error)
+	{
+		if (exitOnError)
+		{
+			logError(`executeCmd() failed, exiting: ${error}`);
 
-      exitWithError();
-    }
-    else
-    {
-      logInfo(`executeCmd() failed, ignoring: ${error}`);
-    }
-  }
+			exitWithError();
+		}
+		else
+		{
+			logInfo(`executeCmd() failed, ignoring: ${error}`);
+		}
+	}
 }
 
 function logInfo(message)
 {
-  // eslint-disable-next-line no-console
-  console.log(`npm-scripts \x1b[36m[INFO] [${task}]\x1b\[0m`, message);
+	// eslint-disable-next-line no-console
+	console.log(`npm-scripts \x1b[36m[INFO] [${task}]\x1b\[0m`, message);
 }
 
 // eslint-disable-next-line no-unused-vars
 function logWarn(message)
 {
-  // eslint-disable-next-line no-console
-  console.warn(`npm-scripts \x1b[33m[WARN] [${task}]\x1b\[0m`, message);
+	// eslint-disable-next-line no-console
+	console.warn(`npm-scripts \x1b[33m[WARN] [${task}]\x1b\[0m`, message);
 }
 
 function logError(message)
 {
-  // eslint-disable-next-line no-console
-  console.error(`npm-scripts \x1b[31m[ERROR] [${task}]\x1b\[0m`, message);
+	// eslint-disable-next-line no-console
+	console.error(`npm-scripts \x1b[31m[ERROR] [${task}]\x1b\[0m`, message);
 }
 
 function exitWithError()
 {
-  process.exit(1);
+	process.exit(1);
 }

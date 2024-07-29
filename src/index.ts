@@ -7,18 +7,13 @@ import { useStateCallback } from './useStateCallback'
 import { useDev } from './useDev'
 import { useStrongPassword } from './useStrongPassword'
 
-
-
-
 export {
-    useAttemptListener,
-    useStateCallback,
-    useDev,
-    useStrongPassword,
-    useFetchData,
-    useEffectOnce,
-    useStateWithDebounce,
-    useStateWithPrevious,
+  useAttemptListener,
+  useStateCallback,
+  useDev,
+  useStrongPassword,
+  useFetchData,
+  useEffectOnce,
+  useStateWithDebounce,
+  useStateWithPrevious,
 }
-
-  

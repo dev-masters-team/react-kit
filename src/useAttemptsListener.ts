@@ -1,103 +1,53 @@
-import {
-  AnyAction,
-  AsyncThunk,
-  Dispatch,
-  ListenerMiddleware,
-  MiddlewareArray,
-  ThunkDispatch,
-  ThunkMiddleware,
-  Unsubscribe,
-  addListener,
-} from '@reduxjs/toolkit'
-import { useEffect, useState } from 'react'
-// import { store } from '../../store'
-import { ToolkitStore } from '@reduxjs/toolkit/dist/configureStore'
-// AsyncThunkConfig has been copied from /node_modules/@reduxjs/toolkit/dist/createAsyncThunk.d.ts
-declare type AsyncThunkConfig = {
-  state?: unknown
-  dispatch?: Dispatch
-  extra?: unknown
-  rejectValue?: unknown
-  serializedErrorType?: unknown
-  pendingMeta?: unknown
-  fulfilledMeta?: unknown
-  rejectedMeta?: unknown
-}
+import { useEffect } from 'react'
 
-// type AttemptActionPending<Returned, ThunkArg, ThunkApiConfig extends AsyncThunkConfig> = ReturnType<AsyncThunk<Returned, ThunkArg, ThunkApiConfig>['pending']>;
-// type AttemptActionFulfilled<Returned, ThunkArg, ThunkApiConfig extends AsyncThunkConfig> = ReturnType<AsyncThunk<Returned, ThunkArg, ThunkApiConfig>['fulfilled']>;
-// type AttemptActionRejected<Returned, ThunkArg, ThunkApiConfig extends AsyncThunkConfig> = ReturnType<AsyncThunk<Returned, ThunkArg, ThunkApiConfig>['rejected']>;
+type AttemptListeners = Array<[
+    string,
+    {[key: string]: (...args: any[]) => void},
+    (() => void)?
+]> 
 
-interface Props<Returned, ThunkArg, ThunkApiConfig extends AsyncThunkConfig> {
-  store: ToolkitStore<
-    any,
-    AnyAction,
-    MiddlewareArray<
-      [
-        ListenerMiddleware<unknown, ThunkDispatch<unknown, unknown, AnyAction>, unknown>,
-        ThunkMiddleware<any, AnyAction>,
-      ]
-    >
-  >
-  attempt: AsyncThunk<Returned, ThunkArg, ThunkApiConfig>
-  onPending?: (action: any) => void
-  // onFulfilled?: (action: PayloadAction<ReturnType<T>>, listenerApi: ListenerEffectAPI<unknown, ThunkDispatch<unknown, unknown, AnyAction>, unknown>) => void
-  onFulfilled?: (action: any, listenerApi: any) => void
-  onRejected?: (action: any, listenerApi: any) => void
-}
-
-export function useAttemptListener<
-  Returned,
-  ThunkArg,
-  ThunkApiConfig extends AsyncThunkConfig,
->({
-  attempt,
-  store,
-  onPending,
-  onFulfilled,
-  onRejected,
-}: Props<Returned, ThunkArg, ThunkApiConfig>): boolean {
-  const [pending, setPending] = useState<boolean>(false)
-
+/**
+ * This hook listens to changes in the first parameter
+ * and executes corresponding functions based on the second parameter.
+ * The third parameter is a fallback to handle errors.
+ *
+ * @param attemptsListeners - An array of attempt listeners.
+ *
+ * Example usage:
+ *   useAttemptsListener([
+ *     attemptAuthStatus, {
+ *       'UNKNOWN_CREDENTIALS': () => console.log('UNKNOWN_CREDENTIALS'),
+ *       'NO_ORGANISATION': () => console.log('NO_ORGANISATION'),
+ *       'unknown_error': () => console.log('unknown_error'),
+ *     },
+ *     attemptSomethingElse, {
+ *       'case 1': () => console.log('case 1'),
+ *       'case 2': () => console.log('case 2'),
+ *       'case 3': () => console.log('case 3'),
+ *     },
+ *   ]);
+ */
+export function useAttemptsListener(
+    attemptsListeners: AttemptListeners,
+    onReturn?: () => void,
+    extraFunction?: () => void
+){
+  attemptsListeners.forEach(([attempt, listeners , onIdle = undefined]) => {
+    useEffect(() => {
+          Object.entries(listeners).forEach(([key, func]) => {
+            if (attempt === key) {
+              func()
+            } //else fallback()
+          })
+          return () => {
+            onIdle && onIdle() 
+          }
+    }, [attempt])
+  })
   useEffect(() => {
-    const removeAttemptPendingListener: Unsubscribe = store.dispatch(
-      addListener({
-        actionCreator: attempt.pending,
-        effect: (action) => {
-          setPending(true)
-          onPending && onPending(action)
-        },
-      }),
-    )
-
-    const removeAttemptErrorListener: Unsubscribe = store.dispatch(
-      addListener({
-        actionCreator: attempt.rejected,
-        effect: (action, listenerApi) => {
-          setPending(false)
-          onRejected
-            ? onRejected(action, listenerApi)
-            : console.error(`${attempt.name} has been rejected!`)
-        },
-      }),
-    )
-
-    const removeAttemptSuccessListener: Unsubscribe = store.dispatch(
-      addListener({
-        actionCreator: attempt.fulfilled,
-        effect: (action, listenerApi) => {
-          setPending(false)
-          onFulfilled && onFulfilled(action, listenerApi)
-        },
-      }),
-    )
-
+    extraFunction && extraFunction()
     return () => {
-      removeAttemptSuccessListener()
-      removeAttemptErrorListener()
-      removeAttemptPendingListener()
+      onReturn && onReturn() 
     }
-  }, [attempt])
-
-  return pending
+  }, [])
 }

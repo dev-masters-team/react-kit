@@ -1,48 +1,53 @@
 import {
   AsyncThunk,
-  Dispatch,
   ListenerMiddlewareInstance,
   ThunkDispatch,
   UnknownAction,
+  PayloadAction,
+  ListenerEffectAPI
 } from '@reduxjs/toolkit'
 
 import { useEffect, useState } from 'react'
 
-// AsyncThunkConfig has been copied from /node_modules/@reduxjs/toolkit/dist/createAsyncThunk.d.ts
-declare type AsyncThunkConfig = {
-  state?: unknown
-  dispatch?: Dispatch
-  extra?: unknown
-  rejectValue?: unknown
-  serializedErrorType?: unknown
-  pendingMeta?: unknown
-  fulfilledMeta?: unknown
-  rejectedMeta?: unknown
-}
-interface Props<Returned, ThunkArg, ThunkApiConfig extends AsyncThunkConfig> {
-  listenerMiddleware: ListenerMiddlewareInstance<
-    unknown,
-    ThunkDispatch<unknown, unknown, UnknownAction>,
-    unknown
-  >
-
-  attempt: AsyncThunk<Returned, ThunkArg, ThunkApiConfig>
-  onPending?: (action: any) => void
-  onFulfilled?: (action: any, listenerApi: any) => void
-  onRejected?: (action: any, listenerApi: any) => void
+// Infer action types from AsyncThunk
+type AsyncThunkPendingAction<ThunkArg> = PayloadAction<undefined, string, { arg: ThunkArg; requestId: string }>
+type AsyncThunkFulfilledAction<Returned, ThunkArg> = PayloadAction<Returned, string, { arg: ThunkArg; requestId: string }>
+type AsyncThunkRejectedAction<ThunkArg, RejectedValue = unknown> = PayloadAction<RejectedValue | undefined, string, { arg: ThunkArg; requestId: string; aborted: boolean; condition: boolean }, { name?: string; message?: string; code?: string; stack?: string }>
+interface Props<
+  Returned,
+  ThunkArg,
+  State = unknown,
+  Dispatch extends ThunkDispatch<any, any, any> = ThunkDispatch<unknown, unknown, UnknownAction>,
+  ExtraArgument = unknown,
+  RejectedValue = unknown
+> {
+  listenerMiddleware: ListenerMiddlewareInstance<State, Dispatch, ExtraArgument>
+  
+  attempt: AsyncThunk<Returned, ThunkArg, { 
+    state: State
+    dispatch: Dispatch
+    extra: ExtraArgument
+    rejectValue: RejectedValue
+  }>
+  onPending?: (action: AsyncThunkPendingAction<ThunkArg>) => void
+  onFulfilled?: (action: AsyncThunkFulfilledAction<Returned, ThunkArg>, listenerApi: ListenerEffectAPI<State, Dispatch, ExtraArgument>) => void
+  onRejected?: (action: AsyncThunkRejectedAction<ThunkArg, RejectedValue>, listenerApi: ListenerEffectAPI<State, Dispatch, ExtraArgument>) => void
 }
 
 export function useAttemptListener<
   Returned,
   ThunkArg,
-  ThunkApiConfig extends AsyncThunkConfig,
+  State = unknown,
+  Dispatch extends ThunkDispatch<any, any, any> = ThunkDispatch<unknown, unknown, UnknownAction>,
+  ExtraArgument = unknown,
+  RejectedValue = unknown
 >({
   attempt,
   listenerMiddleware,
   onPending,
   onFulfilled,
   onRejected,
-}: Props<Returned, ThunkArg, ThunkApiConfig>): boolean {
+}: Props<Returned, ThunkArg, State, Dispatch, ExtraArgument, RejectedValue>): boolean {
   const [pending, setPending] = useState<boolean>(false)
 
   useEffect(() => {
@@ -77,6 +82,7 @@ export function useAttemptListener<
       removeFulfilled()
     }
   }, [attempt, listenerMiddleware, onPending, onRejected, onFulfilled])
+
 
   return pending
 }

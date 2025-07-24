@@ -3,7 +3,7 @@ import {
   Dispatch,
   ListenerMiddlewareInstance,
   ThunkDispatch,
-  UnknownAction
+  UnknownAction,
 } from '@reduxjs/toolkit'
 
 import { useEffect, useState } from 'react'
@@ -20,8 +20,12 @@ declare type AsyncThunkConfig = {
   rejectedMeta?: unknown
 }
 interface Props<Returned, ThunkArg, ThunkApiConfig extends AsyncThunkConfig> {
-  listenerMiddleware: ListenerMiddlewareInstance<unknown, ThunkDispatch<unknown, unknown, UnknownAction>, unknown>
-  
+  listenerMiddleware: ListenerMiddlewareInstance<
+    unknown,
+    ThunkDispatch<unknown, unknown, UnknownAction>,
+    unknown
+  >
+
   attempt: AsyncThunk<Returned, ThunkArg, ThunkApiConfig>
   onPending?: (action: any) => void
   onFulfilled?: (action: any, listenerApi: any) => void
@@ -73,7 +77,6 @@ export function useAttemptListener<
       removeFulfilled()
     }
   }, [attempt, listenerMiddleware, onPending, onRejected, onFulfilled])
-
 
   return pending
 }

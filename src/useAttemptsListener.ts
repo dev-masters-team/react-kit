@@ -1,10 +1,8 @@
 import { useEffect } from 'react'
 
-type AttemptListeners = Array<[
-    string,
-    {[key: string]: (...args: any[]) => void},
-    (() => void)?
-]> 
+type AttemptListeners = Array<
+  [string, { [key: string]: (...args: any[]) => void }, (() => void)?]
+>
 
 /**
  * This hook listens to changes in the first parameter
@@ -28,26 +26,26 @@ type AttemptListeners = Array<[
  *   ]);
  */
 export function useAttemptsListener(
-    attemptsListeners: AttemptListeners,
-    onReturn?: () => void,
-    extraFunction?: () => void
-){
-  attemptsListeners.forEach(([attempt, listeners , onIdle = undefined]) => {
+  attemptsListeners: AttemptListeners,
+  onReturn?: () => void,
+  extraFunction?: () => void,
+) {
+  attemptsListeners.forEach(([attempt, listeners, onIdle = undefined]) => {
     useEffect(() => {
-          Object.entries(listeners).forEach(([key, func]) => {
-            if (attempt === key) {
-              func()
-            } //else fallback()
-          })
-          return () => {
-            onIdle && onIdle() 
-          }
+      Object.entries(listeners).forEach(([key, func]) => {
+        if (attempt === key) {
+          func()
+        } //else fallback()
+      })
+      return () => {
+        onIdle && onIdle()
+      }
     }, [attempt])
   })
   useEffect(() => {
     extraFunction && extraFunction()
     return () => {
-      onReturn && onReturn() 
+      onReturn && onReturn()
     }
   }, [])
 }

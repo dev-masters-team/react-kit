@@ -4,6 +4,7 @@
     "jsx": "react-jsx",
     "lib": ["es2020", "dom"],
     "target": "es2020",
+    "skipLibCheck": true,
     "module": "commonjs",
     "moduleResolution": "node",
     "esModuleInterop": true,

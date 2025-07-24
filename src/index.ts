@@ -19,5 +19,5 @@ export {
   useEffectOnce,
   useStateWithDebounce,
   useStateWithPrevious,
-  generateUniqueColor
+  generateUniqueColor,
 }

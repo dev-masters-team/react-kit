@@ -29,6 +29,7 @@ interface Props<
     extra: ExtraArgument
     rejectValue: RejectedValue
   }>
+  initialPendingState?: boolean
   onPending?: (action: AsyncThunkPendingAction<ThunkArg>) => void
   onFulfilled?: (action: AsyncThunkFulfilledAction<Returned, ThunkArg>, listenerApi: ListenerEffectAPI<State, Dispatch, ExtraArgument>) => void
   onRejected?: (action: AsyncThunkRejectedAction<ThunkArg, RejectedValue>, listenerApi: ListenerEffectAPI<State, Dispatch, ExtraArgument>) => void
@@ -43,12 +44,14 @@ export function useAttemptListener<
   RejectedValue = unknown
 >({
   attempt,
+  initialPendingState = false,
   listenerMiddleware,
   onPending,
   onFulfilled,
   onRejected,
+
 }: Props<Returned, ThunkArg, State, Dispatch, ExtraArgument, RejectedValue>): boolean {
-  const [pending, setPending] = useState<boolean>(false)
+  const [pending, setPending] = useState<boolean>(initialPendingState)
 
   useEffect(() => {
     const removePending = listenerMiddleware.startListening({
